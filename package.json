@@ -1,0 +1,14 @@
+{
+  "name": "@openclaw/listen-only",
+  "version": "2026.3.9",
+  "description": "OpenClaw listen-only mode plugin for group chats",
+  "type": "module",
+  "peerDependencies": {
+    "openclaw": "*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
