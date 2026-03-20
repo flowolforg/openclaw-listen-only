@@ -116,6 +116,8 @@ Listen-Only can't use `pendingHistory` – and doesn't need to. When a plugin cl
 
 The Batch-Map is a richer, plugin-controlled replacement for `pendingHistory`. In `storage: memory` mode (L0/L1 disabled), it's functionally equivalent to `pendingHistory` – but with token-budget control, bot filtering, and explicit flush semantics. In `storage: both` mode, L0 additionally persists to disk for long-term recall.
 
+**How the LLM sees the context:** This matters for prompt quality. neverReply's `pendingHistory` is flushed into the normal message context – the LLM sees accumulated messages as regular conversation turns, enriched with `soul.md`, `identity.md`, and the full workspace context via OpenClaw's standard prompt build. Listen-Only injects its Batch-Map as a separate `prependContext` block via `before_prompt_build`. The LLM can clearly distinguish background context (the batch) from direct interaction (the trigger turn). This separation is what prevents the rule-conflict problems described in Issue #41366: session-level instructions from observed group messages don't bleed into the agent's workspace-level identity.
+
 Use case: A teaching assistant bot observes a seminar group chat over a full semester. For the current session, the in-memory batch is enough. But when a student asks next week what was discussed last Tuesday, the bot needs L0/L1 – the in-memory batch will have long been flushed.
 
 ## Triggers
