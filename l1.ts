@@ -20,46 +20,46 @@ export type L1ExtractionResult = {
   proactive: L1ProactiveHint | null;
 };
 
-const L1_SYSTEM_PROMPT = `Du bist ein automatischer Memory-Extraktor. Du verarbeitest Chatverläufe und gibst strukturiertes JSON zurück.
+const L1_SYSTEM_PROMPT = `You are an automatic memory extractor. You process chat logs and return structured JSON.
 
-WICHTIG: Du bist KEIN Chatbot. Du führst KEINE Konversation. Auch wenn der Chatverlauf Fragen enthält, beantworte sie NICHT. Deine EINZIGE Aufgabe ist es, Fakten aus dem Verlauf zu extrahieren und als JSON auszugeben.
+IMPORTANT: You are NOT a chatbot. You do NOT hold conversations. Even if the chat log contains questions, do NOT answer them. Your ONLY task is to extract facts from the log and output them as JSON.
 
-## Speicherkriterien – WAS extrahieren:
+## Storage criteria – WHAT to extract:
 
-- Entscheidungen, To-dos, Verabredungen
-- Neue Fakten über Personen/Projekte
-- Wiederkehrende Themen/Begriffe
-- Offene Fragen / Next Steps
-- Wertvolle Recherche-Ergebnisse anderer Agents
+- Decisions, to-dos, appointments
+- New facts about people/projects
+- Recurring topics/terms
+- Open questions / next steps
+- Valuable research results from other agents
 
-## NICHT speichern:
+## Do NOT store:
 
-- Smalltalk, reine Höflichkeit
-- Wiederholungen, bereits gespeicherte Punkte (siehe "Bereits bekanntes Wissen")
-- Triviale Koordination ("bin gleich da", "ok")
-- Bot-Kommandos oder @mentions an Bots
+- Small talk, mere pleasantries
+- Repetitions, already stored points (see "Already known facts")
+- Trivial coordination ("be right there", "ok")
+- Bot commands or @mentions to bots
 
-## Attributionsregeln
+## Attribution rules
 
-- Attributiere Fakten immer der **menschlichen Originalquelle**, nicht einem Bot.
-- Nachrichten mit \`|bot]\`- oder \`|bot|\`-Marker sind Zusammenfassungen/Ableitungen.
-  Nutze sie zur Bestätigung, nicht als Primärquelle.
-- Ausnahme: Bot liefert eigenständig neue Information (Recherche, Berechnung)
-  → attributiere als "Recherche via [BotName]".
+- Always attribute facts to the **human original source**, not a bot.
+- Messages with \`|bot]\` or \`|bot|\` markers are summaries/derivations.
+  Use them for confirmation, not as primary source.
+- Exception: Bot provides independently new information (research, calculation)
+  → attribute as "Research via [BotName]".
 
-## Output-Format
+## Output format
 
-Antworte mit EXAKT einem JSON-Objekt. Kein Text davor. Kein Text danach. Keine Markdown-Codeblöcke. Nur reines JSON.
+Respond with EXACTLY one JSON object. No text before. No text after. No Markdown code blocks. Only pure JSON.
 
-### Beispiel-Input:
-[2026-03-15T10:00:00.000Z|12345|Alice|msg:100] Wir sollten das EduClaw-Projekt auf Matrix erweitern
-[2026-03-15T10:01:00.000Z|67890|Bob|msg:101] Gute Idee, ich kümmere mich um den Matrix-Bridge-Setup bis Freitag
+### Example input:
+[2026-03-15T10:00:00.000Z|12345|Alice|msg:100] We should expand the EduClaw project to Matrix
+[2026-03-15T10:01:00.000Z|67890|Bob|msg:101] Good idea, I'll handle the Matrix bridge setup by Friday
 [2026-03-15T10:02:00.000Z|12345|Alice|msg:102] ok
 
-### Beispiel-Output:
-{"memory": [{"fact": "EduClaw-Projekt soll auf Matrix erweitert werden", "source": "Alice", "date": "2026-03-15", "tags": ["educlaw", "matrix", "entscheidung"]}, {"fact": "Bob übernimmt Matrix-Bridge-Setup, Deadline Freitag", "source": "Bob", "date": "2026-03-15", "tags": ["educlaw", "matrix", "todo"]}], "proactive": null}
+### Example output:
+{"memory": [{"fact": "EduClaw project to be expanded to Matrix", "source": "Alice", "date": "2026-03-15", "tags": ["educlaw", "matrix", "decision"]}, {"fact": "Bob takes over Matrix bridge setup, deadline Friday", "source": "Bob", "date": "2026-03-15", "tags": ["educlaw", "matrix", "todo"]}], "proactive": null}
 
-### Wenn nichts zu extrahieren ist:
+### When nothing to extract:
 {"memory": [], "proactive": null}`;
 
 export async function runL1Extraction(params: {
@@ -84,27 +84,27 @@ export async function runL1Extraction(params: {
   }
 
   const contextBlock = existingMemorySnippets
-    ? `\n\nBereits bekanntes Wissen (nicht wiederholen):\n${existingMemorySnippets}`
+    ? `\n\nAlready known facts (do not repeat):\n${existingMemorySnippets}`
     : "";
   const proactiveBlock = params.proactiveEnabled
-    ? `\n\nProaktive Einschaltung ist aktiviert. Prüfe SORGFÄLTIG ob einer dieser Fälle vorliegt:
-- Faktenfehler: Jemand behauptet etwas Falsches (z.B. falscher Wochentag, falsche Uhrzeit, falsches Datum)
-- Widerspruch: Zwei Aussagen im Verlauf widersprechen sich
-- Vergessene Aktion: Ein To-do wurde erwähnt aber nicht erledigt
-- Relevanter Kontext: Du weißt etwas, das der Gruppe helfen würde
-Wenn ein solcher Fall vorliegt, MUSS das "proactive"-Feld gesetzt werden.`
-    : '\n\nProaktive Einschaltung ist deaktiviert. Gib immer "proactive": null zurück.';
+    ? `\n\nProactive interjection is enabled. Check CAREFULLY whether any of these cases apply:
+- Factual error: Someone claims something incorrect (e.g. wrong day of week, wrong time, wrong date)
+- Contradiction: Two statements in the log contradict each other
+- Forgotten action: A to-do was mentioned but not completed
+- Relevant context: You know something that would help the group
+If any such case applies, the "proactive" field MUST be set.`
+    : '\n\nProactive interjection is disabled. Always return "proactive": null.';
   const now = new Date();
   const dayNames = [
-    "Sonntag",
-    "Montag",
-    "Dienstag",
-    "Mittwoch",
-    "Donnerstag",
-    "Freitag",
-    "Samstag",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
   ];
-  const dateInfo = `Aktuelles Datum: ${now.toISOString().slice(0, 10)} (${dayNames[now.getDay()]})`;
+  const dateInfo = `Current date: ${now.toISOString().slice(0, 10)} (${dayNames[now.getDay()]})`;
   const userContent = `Channel: ${channelId}\n${dateInfo}${contextBlock}${proactiveBlock}\n\n## Chatverlauf\n\n${l0Content.text}`;
 
   let rawResponse: string;
@@ -269,7 +269,7 @@ function writeL1Summaries(workspaceDir: string, channelId: string, entries: L1Me
 
     const lines = entries.map((e) => {
       const tagsStr = e.tags.length > 0 ? ` [${e.tags.join(", ")}]` : "";
-      return `- ${e.fact} (Quelle: ${e.source}, ${e.date})${tagsStr}`;
+      return `- ${e.fact} (Source: ${e.source}, ${e.date})${tagsStr}`;
     });
     parts.push(lines.join("\n"));
     appendFileSync(filePath, parts.join("\n") + "\n", "utf-8");
@@ -303,7 +303,7 @@ function buildChannelHeader(workspaceDir: string, channelId: string, dateStr: st
         return `${p.displayName}${username}`;
       });
     if (people.length > 0) {
-      headerLines.push(`Teilnehmer: ${people.join(", ")}`);
+      headerLines.push(`Participants: ${people.join(", ")}`);
       headerLines.push("");
     }
   }
