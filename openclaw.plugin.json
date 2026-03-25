@@ -1,0 +1,149 @@
+{
+  "id": "listen-only",
+  "name": "Listen-Only Mode",
+  "description": "Pre-LLM gate for group chats: silently batch non-trigger messages, extract memory periodically, and optionally interject proactively.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean" },
+      "forceOff": { "type": "boolean" },
+      "triggers": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["mention", "owner_voice", "owner_image", "explicit_command"]
+        }
+      },
+      "rateLimit": {
+        "type": "object",
+        "properties": {
+          "maxRepliesPerWindow": { "type": "number" },
+          "windowSeconds": { "type": "number" }
+        }
+      },
+      "silentBatching": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "windowSeconds": { "type": "number" },
+          "maxMessages": { "type": "number" },
+          "maxBatchTokens": { "type": "number" }
+        }
+      },
+      "ignoreSelf": { "type": "boolean" },
+      "ignoreKnownBotIds": { "type": "array", "items": { "type": "string" } },
+      "onlyHumanTriggers": { "type": "boolean" },
+      "memoryExtraction": {
+        "type": "object",
+        "properties": {
+          "l0": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "retentionDays": { "type": "number" },
+              "compressAfterDays": { "type": "number" },
+              "pseudonymize": { "type": "boolean" }
+            }
+          },
+          "l1": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "model": { "type": "string" },
+              "strategy": { "type": "string" },
+              "budgetTokensPerRun": { "type": "number" },
+              "intervalSeconds": { "type": "number" },
+              "deduplication": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "proactive": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "cooldownSeconds": { "type": "number" }
+        }
+      },
+      "dataDir": { "type": "string" },
+      "perAgent": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "forceOff": { "type": "boolean" },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["mention", "owner_voice", "owner_image", "explicit_command"]
+              }
+            },
+            "dataDir": { "type": "string" }
+          }
+        }
+      },
+      "perChannel": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "forceOff": { "type": "boolean" },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["mention", "owner_voice", "owner_image", "explicit_command"]
+              }
+            },
+            "onlyHumanTriggers": { "type": "boolean" },
+            "rateLimit": {
+              "type": "object",
+              "properties": {
+                "maxRepliesPerWindow": { "type": "number" },
+                "windowSeconds": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "uiHints": {
+    "enabled": { "label": "Enable listen-only mode" },
+    "forceOff": { "label": "Force disable (overrides per-agent)" },
+    "triggers": {
+      "label": "Trigger conditions",
+      "placeholder": "mention, owner_voice, owner_image, explicit_command"
+    },
+    "rateLimit.maxRepliesPerWindow": { "label": "Max replies per window" },
+    "rateLimit.windowSeconds": { "label": "Rate limit window (seconds)" },
+    "silentBatching.enabled": { "label": "Enable silent batching" },
+    "silentBatching.windowSeconds": { "label": "Batch window (seconds)" },
+    "silentBatching.maxMessages": { "label": "Max messages per batch" },
+    "silentBatching.maxBatchTokens": { "label": "Max tokens for batch context injection" },
+    "ignoreSelf": { "label": "Ignore own messages" },
+    "ignoreKnownBotIds": { "label": "Bot IDs to ignore" },
+    "onlyHumanTriggers": { "label": "Only trigger on human messages" },
+    "memoryExtraction.l0.enabled": { "label": "Enable L0 raw logging" },
+    "memoryExtraction.l0.retentionDays": { "label": "L0 retention (days)" },
+    "memoryExtraction.l0.compressAfterDays": { "label": "Compress L0 after (days)" },
+    "memoryExtraction.l0.pseudonymize": { "label": "Pseudonymize sender IDs in L0" },
+    "memoryExtraction.l1.enabled": { "label": "Enable L1 memory extraction" },
+    "memoryExtraction.l1.model": { "label": "LLM model for L1 extraction" },
+    "memoryExtraction.l1.strategy": { "label": "Extraction strategy" },
+    "memoryExtraction.l1.budgetTokensPerRun": { "label": "Token budget per L1 run" },
+    "memoryExtraction.l1.intervalSeconds": { "label": "L1 extraction interval (seconds)" },
+    "memoryExtraction.l1.deduplication": { "label": "Deduplicate L1 entries" },
+    "proactive.enabled": { "label": "Enable proactive interjections" },
+    "proactive.categories": { "label": "Proactive interjection categories" },
+    "proactive.cooldownSeconds": { "label": "Proactive cooldown (seconds)" },
+    "dataDir": { "label": "Data directory", "placeholder": "~/.openclaw/workspace-<agent>" },
+    "perAgent": { "label": "Per-agent overrides (keys are agent IDs)" },
+    "perChannel": { "label": "Per-channel overrides (keys are conversationId patterns)" }
+  }
+}
